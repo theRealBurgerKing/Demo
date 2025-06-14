@@ -6,6 +6,8 @@ An embedded AI visualization tool that allows users to transform room images usi
 
 **🚀 [Try the live demo here](https://ai-visualizer-demo.vercel.app/) **
 
+The project is deployed on Vercel and ready to use! Click "Start Your Design Journey" to experience the AI-powered room transformation tool.
+
 I also deploy it in iframe. Here is an example:
 
 ```html
@@ -18,8 +20,6 @@ I also deploy it in iframe. Here is an example:
   ></iframe>
 </div>
 ```
-
-The project is deployed on Vercel and ready to use! Click "Start Your Design Journey" to experience the AI-powered room transformation tool.
 
 ## ✨ Features
 
