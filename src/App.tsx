@@ -36,7 +36,7 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Header */}
       <header className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
@@ -63,8 +63,8 @@ function App() {
       </div>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 py-12 sm:px-6 lg:px-8">
-        <div className="text-center">
+      <main className="flex-1 flex items-center justify-center">
+        <div className="max-w-7xl w-full px-4 py-12 sm:px-6 lg:px-8 flex flex-col items-center justify-center text-center">
           <h3 className="text-3xl font-bold text-gray-900">
             Welcome to Our Platform
           </h3>

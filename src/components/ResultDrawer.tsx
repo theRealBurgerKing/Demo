@@ -49,6 +49,17 @@ const ResultDrawer: React.FC<ResultDrawerProps> = ({ open, onClose, resultImage,
     }
   }, [dragging])
 
+  React.useEffect(() => {
+    if (!open) return;
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleEscape);
+    return () => window.removeEventListener('keydown', handleEscape);
+  }, [open, onClose]);
+
   if (!open) return null
   return (
     <motion.div
@@ -125,6 +136,15 @@ const ResultDrawer: React.FC<ResultDrawerProps> = ({ open, onClose, resultImage,
               <img src={resultImage} alt="Generated Result" className="rounded-lg shadow max-h-[70vh] object-contain" />
             </div>
           )}
+          {/* Download Button */}
+          <a
+            href={resultImage}
+            download
+            className="mt-8 px-6 py-2 bg-blue-600 text-white rounded-lg font-semibold shadow hover:bg-blue-700 transition-colors"
+            style={{ display: resultImage ? 'inline-block' : 'none' }}
+          >
+            Download Image
+          </a>
         </div>
       </div>
     </motion.div>

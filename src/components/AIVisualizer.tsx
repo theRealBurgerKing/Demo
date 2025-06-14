@@ -1,12 +1,10 @@
-import { useEffect, useState, useCallback, useRef } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { motion } from 'framer-motion'
 
 interface AIVisualizerProps {
   onClose: () => void
   onShowResult: (resultImage: string, originalImage: string) => void
 }
-
-const API_BASE = 'https://d12qavyo5a8mvc.cloudfront.net'
 
 const AIVisualizer = ({ onClose, onShowResult }: AIVisualizerProps) => {
   const [isDragging, setIsDragging] = useState(false)
@@ -15,142 +13,8 @@ const AIVisualizer = ({ onClose, onShowResult }: AIVisualizerProps) => {
   const [isLoading, setIsLoading] = useState(false)
   const [progress, setProgress] = useState<number>(0)
   const [resultImage, setResultImage] = useState<string | null>(null)
-  const [taskId, setTaskId] = useState<string | null>(null)
-  const [showTaskIdModal, setShowTaskIdModal] = useState(false)
   const [originalImageUrl, setOriginalImageUrl] = useState<string | null>(null)
-  const pollingRef = useRef<NodeJS.Timeout | null>(null)
-  const [modalMessage, setModalMessage] = useState<string | null>(null)
-
-  // Mock process: simulate upload, progress, and result
-  const mockProcess = (file: File) => {
-    setIsLoading(true)
-    setProgress(0)
-    setResultImage(null)
-    const origUrl = URL.createObjectURL(file)
-    setOriginalImageUrl(origUrl)
-    let prog = 0
-    const interval = setInterval(() => {
-      prog += Math.floor(Math.random() * 15) + 10
-      if (prog >= 100) {
-        prog = 100
-        setProgress(prog)
-        clearInterval(interval)
-        setTimeout(() => {
-          setIsLoading(false)
-          setResultImage('public/generatedpic.jpg')
-          // Call onShowResult to open result drawer
-          onShowResult('public/generatedpic.jpg', origUrl)
-        }, 500)
-      } else {
-        setProgress(prog)
-      }
-    }, 500)
-  }
-
-  // Helper: upload file to /upload, then start task
-  const uploadAndStartTask = async (file: File) => {
-    setIsLoading(true)
-    setTaskId(null)
-    setError(null)
-    setModalMessage(null)
-    try {
-      // 1. Upload image
-      const uploadForm = new FormData()
-      uploadForm.append('file', file)
-      const uploadRes = await fetch(`${API_BASE}/upload`, {
-        method: 'POST',
-        body: uploadForm,
-      })
-      if (!uploadRes.ok) throw new Error('Failed to upload image')
-      const uploadData = await uploadRes.json()
-      if (!uploadData.path) throw new Error('No image path returned')
-      // 2. Start work task
-      const body = {
-        base_image: uploadData.path,
-        selected_reference: '/static/ref/a1.jpeg',
-        texture_paths: ['/static/textures/axon_cladding.jpg'],
-        recommended_colours: [
-          { name: 'Dulux Whisper White', rgb: '244,242,236' },
-          { name: 'Knotwood Silver Wattle', rgb: '200,198,192' }
-        ],
-        selected_product: {
-          name: 'Linea™ Weatherboard',
-          texture: 'textures/linea_weatherboard.png'
-        },
-        remove_obstacles: true,
-        use_mask: false,
-        design_ideology: 'Minimalistic',
-        style_config: 'Modern Coastal'
-      }
-      const res = await fetch(`${API_BASE}/api/start_work`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      })
-      if (res.status === 400) {
-        const errData = await res.json()
-        setModalMessage(errData.Message || 'Bad Request')
-        setShowTaskIdModal(true)
-        return
-      }
-      if (!res.ok) throw new Error('Failed to start task')
-      const data = await res.json()
-      if (!data.task_id) throw new Error('No task_id returned')
-      setTaskId(data.task_id)
-      setModalMessage(null)
-      setShowTaskIdModal(true)
-    } catch (err: any) {
-      setModalMessage(err.message || 'Failed to start task')
-      setShowTaskIdModal(true)
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  // Helper: poll for result
-  const pollResult = async (task_id: string) => {
-    let elapsed = 0
-    const interval = 3000
-    const maxTime = 90000
-    const poll = async () => {
-      try {
-        const res = await fetch(`${API_BASE}/taskresult/${task_id}`)
-        if (!res.ok) throw new Error('Failed to get result')
-        const data = await res.json()
-        if (data.status === 'finished') {
-          setResultImage(data.result_image_path)
-          setIsLoading(false)
-          setProgress(100)
-          return
-        }
-        if (data.status === 'failed') {
-          setError('Task failed')
-          setIsLoading(false)
-          return
-        }
-        // Still processing
-        elapsed += interval
-        setProgress(Math.min(99, Math.floor((elapsed / maxTime) * 100)))
-        if (elapsed < maxTime) {
-          pollingRef.current = setTimeout(poll, interval)
-        } else {
-          setError('Timeout: No result after 90 seconds')
-          setIsLoading(false)
-        }
-      } catch (err: any) {
-        setError(err.message || 'Polling error')
-        setIsLoading(false)
-      }
-    }
-    poll()
-  }
-
-  // Clean up polling on unmount
-  useEffect(() => {
-    return () => {
-      if (pollingRef.current) clearTimeout(pollingRef.current)
-    }
-  }, [])
+  const [taskId, setTaskId] = useState<string | null>(null)
 
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -158,30 +22,65 @@ const AIVisualizer = ({ onClose, onShowResult }: AIVisualizerProps) => {
         onClose()
       }
     }
-
     window.addEventListener('keydown', handleEscape)
     return () => window.removeEventListener('keydown', handleEscape)
   }, [onClose])
 
+  // Validate file type and size
   const validateFile = (file: File): boolean => {
     const validTypes = ['image/jpeg', 'image/png']
     const maxSize = 5 * 1024 * 1024 // 5MB
-
     if (!validTypes.includes(file.type)) {
       setError('Only JPG and PNG formats are supported')
       return false
     }
-
     if (file.size > maxSize) {
       setError('File size cannot exceed 5MB')
       return false
     }
-
     setError(null)
     return true
   }
 
-  // When file selected, start mock process
+  // Mock process: simulate POST /api/start_work, then poll every 1s, finish at random time
+  const mockProcess = (file: File) => {
+    setIsLoading(true);
+    setProgress(0);
+    setResultImage(null);
+    const origUrl = URL.createObjectURL(file);
+    setOriginalImageUrl(origUrl);
+    const mockTaskId = 'mock-' + Date.now();
+    setTaskId(mockTaskId);
+    let pollCount = 0;
+    const maxPolls = 90; // 90s / 1s
+    const pollInterval = 1000;
+    const maxProgress = 80;
+    const finishPoll = Math.floor(Math.random() * 3) + 3; // 3-5次轮询
+    const ease = (t: number) => maxProgress * (1 - Math.exp(-3 * t)); // t: 0~1
+    const poller = setInterval(() => {
+      pollCount++;
+      let t = pollCount / finishPoll;
+      t = Math.min(1, t);
+      let prog = Math.floor(ease(t) + Math.random() * 2); // 加点小抖动
+      setProgress(prog);
+      if (pollCount === finishPoll) {
+        clearInterval(poller);
+        setTimeout(() => {
+          setProgress(100);
+          setIsLoading(false);
+          setResultImage('public/generatedpic.jpg');
+          onShowResult('public/generatedpic.jpg', origUrl);
+        }, 500);
+      }
+      if (pollCount >= maxPolls) {
+        clearInterval(poller);
+        setIsLoading(false);
+        setError('Timeout: No result after 90 seconds');
+      }
+    }, pollInterval);
+  }
+
+  // File select handler
   const handleFileSelect = useCallback((file: File) => {
     if (validateFile(file)) {
       setSelectedFile(file)
@@ -189,10 +88,10 @@ const AIVisualizer = ({ onClose, onShowResult }: AIVisualizerProps) => {
     }
   }, [])
 
+  // Drag and drop handlers
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault()
     setIsDragging(false)
-
     const file = e.dataTransfer.files[0]
     if (file) {
       handleFileSelect(file)
@@ -216,9 +115,6 @@ const AIVisualizer = ({ onClose, onShowResult }: AIVisualizerProps) => {
     }
   }, [handleFileSelect])
 
-  // Simple before/after slider
-  const [sliderValue, setSliderValue] = useState(50)
-
   return (
     <>
       {/* Backdrop */}
@@ -229,7 +125,6 @@ const AIVisualizer = ({ onClose, onShowResult }: AIVisualizerProps) => {
         className="fixed inset-0 bg-black bg-opacity-50 z-40"
         onClick={onClose}
       />
-
       {/* Drawer */}
       <motion.div
         initial={{ y: '100%' }}
@@ -312,16 +207,6 @@ const AIVisualizer = ({ onClose, onShowResult }: AIVisualizerProps) => {
                       <p className="text-xs text-gray-500 mt-2">Processing... ({progress}%)</p>
                     </div>
                   )}
-                  {selectedFile && (
-                    <div className="mt-2 text-center">
-                      <p className="text-gray-800 font-medium">
-                        Selected file: {selectedFile.name}
-                      </p>
-                      <p className="text-sm text-gray-500">
-                        {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
-                      </p>
-                    </div>
-                  )}
                   {error && (
                     <p className="text-red-500 text-sm mt-2">{error}</p>
                   )}
@@ -345,28 +230,6 @@ const AIVisualizer = ({ onClose, onShowResult }: AIVisualizerProps) => {
           </div>
         </div>
       </motion.div>
-      {/* Task ID Modal */}
-      {showTaskIdModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black bg-opacity-40">
-          <div className="bg-white rounded-lg shadow-lg p-8 max-w-xs w-full text-center">
-            {taskId && !modalMessage && <>
-              <h3 className="text-lg font-semibold mb-4">Task Started</h3>
-              <p className="mb-2 text-gray-700 break-all">Task ID:</p>
-              <p className="mb-4 text-blue-600 font-mono text-sm break-all">{taskId}</p>
-            </>}
-            {modalMessage && <>
-              <h3 className="text-lg font-semibold mb-4 text-red-600">Error</h3>
-              <p className="mb-4 text-gray-700 break-all">{modalMessage}</p>
-            </>}
-            <button
-              className="mt-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
-              onClick={() => { setShowTaskIdModal(false); setTaskId(null); setModalMessage(null); }}
-            >
-              OK
-            </button>
-          </div>
-        </div>
-      )}
     </>
   )
 }
