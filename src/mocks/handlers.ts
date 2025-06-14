@@ -5,7 +5,7 @@ let taskStatus: Record<string, { status: string, start: number }> = {}
 
 export const handlers = [
   // start task
-  rest.post('https://d12qavyo5a8mvc.cloudfront.net/api/start_work', async (req, res, ctx) => {
+  rest.post('https://d12qavyo5a8mvc.cloudfront.net/api/start_work', async (_req, res, ctx) => {
     console.log('MSW: intercept start_work request')
     
     const task_id = 'mock-' + Math.random().toString(36).slice(2)

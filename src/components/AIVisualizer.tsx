@@ -10,7 +10,6 @@ const API_BASE = 'https://d12qavyo5a8mvc.cloudfront.net'
 
 export const AIVisualizer: React.FC<AIVisualizerProps> = ({ onClose, onShowResult }) => {
   const [isDragging, setIsDragging] = useState(false)
-  const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [progress, setProgress] = useState<number>(0)
@@ -18,6 +17,7 @@ export const AIVisualizer: React.FC<AIVisualizerProps> = ({ onClose, onShowResul
   const originalImageUrlRef = useRef<string | null>(null)
   const pollingRef = useRef<NodeJS.Timeout | null>(null)
   const abortController = useRef<AbortController | null>(null)
+  const [_selectedFile, setSelectedFile] = useState<File | null>(null)
 
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
