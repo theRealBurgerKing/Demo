@@ -1,9 +1,13 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import AIVisualizer from './components/AIVisualizer'
+import ResultDrawer from './components/ResultDrawer'
 
 function App() {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
+  const [isResultDrawerOpen, setIsResultDrawerOpen] = useState(false)
+  const [resultImage, setResultImage] = useState<string | null>(null)
+  const [originalImage, setOriginalImage] = useState<string | null>(null)
 
   const handleOpenDrawer = () => {
     setIsDrawerOpen(true)
@@ -12,6 +16,22 @@ function App() {
 
   const handleCloseDrawer = () => {
     setIsDrawerOpen(false)
+    document.body.style.overflow = 'auto'
+  }
+
+  // Called when AIVisualizer finishes mock process
+  const handleShowResult = (resultImg: string, originalImg: string) => {
+    setIsDrawerOpen(false)
+    setResultImage(resultImg)
+    setOriginalImage(originalImg)
+    setIsResultDrawerOpen(true)
+    document.body.style.overflow = 'hidden'
+  }
+
+  const handleCloseResultDrawer = () => {
+    setIsResultDrawerOpen(false)
+    setResultImage(null)
+    setOriginalImage(null)
     document.body.style.overflow = 'auto'
   }
 
@@ -64,7 +84,13 @@ function App() {
       {/* AI Visualizer Drawer */}
       <AnimatePresence>
         {isDrawerOpen && (
-          <AIVisualizer onClose={handleCloseDrawer} />
+          <AIVisualizer onClose={handleCloseDrawer} onShowResult={handleShowResult} />
+        )}
+      </AnimatePresence>
+      {/* Result Drawer */}
+      <AnimatePresence>
+        {isResultDrawerOpen && resultImage && (
+          <ResultDrawer open={isResultDrawerOpen} onClose={handleCloseResultDrawer} resultImage={resultImage} originalImage={originalImage || undefined} />
         )}
       </AnimatePresence>
     </div>
