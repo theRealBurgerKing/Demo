@@ -69,23 +69,6 @@ npm run dev
 4. **Open in browser**:
 Visit `http://localhost:5173` to see the application
 
-### Building for Production
-
-```bash
-npm run build
-```
-
-The built files will be in the `dist/` directory.
-
-## 🔧 Development
-
-### Running Tests
-```bash
-npm test                # Run tests once
-npm run test:watch      # Run tests in watch mode
-npm run test:coverage   # Generate coverage report
-```
-
 ### Mock API
 The application uses MSW to mock the AI processing API:
 
@@ -152,61 +135,6 @@ The application implements comprehensive cleanup:
 - **Timer Cleanup**: Clears polling intervals on unmount
 - **Scroll Restoration**: Restores body scroll on drawer close
 
-## 🚀 Deployment
-
-### As Embedded Widget
-
-The tool is designed to be embedded in existing websites:
-
-```html
-<!-- Option 1: iframe embed -->
-<iframe src="https://your-domain.com/ai-visualizer" 
-        width="100%" height="600px"></iframe>
-
-<!-- Option 2: Script embed (future enhancement) -->
-<div id="ai-visualizer-root"></div>
-<script src="https://your-domain.com/ai-visualizer.js"></script>
-```
-
-### Environment Variables
-
-Create a `.env.local` file for environment-specific configuration:
-
-```env
-VITE_API_BASE_URL=https://d12qavyo5a8mvc.cloudfront.net
-VITE_ENABLE_MOCKS=true
-```
-
-## 📊 Performance
-
-- **Bundle Size**: Optimized with code splitting
-- **GPU Acceleration**: Animations use transform/opacity
-- **Memory Management**: Automatic cleanup prevents leaks
-- **60fps Animations**: Smooth 60fps animation performance
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/new-feature`
-3. Commit changes: `git commit -m 'Add new feature'`
-4. Push to branch: `git push origin feature/new-feature`
-5. Submit a pull request
-
-## 📄 License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## 🐛 Troubleshooting
-
-### Common Issues
-
-**Upload not working**: Check file type (JPG/PNG only) and size (≤5MB)
-
-**Animation stuttering**: Ensure GPU acceleration is enabled in browser
-
-**API errors**: Verify network connectivity and API endpoint availability
-
-**Memory issues**: The app automatically cleans up resources, but refresh if needed
 
 ### Browser Support
 
