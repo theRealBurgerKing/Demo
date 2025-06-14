@@ -4,7 +4,20 @@ An embedded AI visualization tool that allows users to transform room images usi
 
 ## 🌐 Live Demo
 
-**🚀 [Try the live demo here](https://ai-visualizer-demo-pjlr60az6-haotian-wangs-projects-abd0efbf.vercel.app/)**
+**🚀 [Try the live demo here](https://ai-visualizer-demo.vercel.app/) **
+
+I also deploy it in iframe. Here is an example:
+
+```html
+<div class="iframe-container">
+  <iframe 
+    src="https://ai-visualizer-demo.vercel.app/" 
+    title="AI Visualizer Demo"
+    allow="fullscreen"
+    loading="lazy"
+  ></iframe>
+</div>
+```
 
 The project is deployed on Vercel and ready to use! Click "Start Your Design Journey" to experience the AI-powered room transformation tool.
 
