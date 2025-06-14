@@ -145,4 +145,8 @@ The application implements comprehensive cleanup:
 
 ---
 
+
+![image](https://github.com/user-attachments/assets/41089426-e861-4eab-b4af-1cf1c899f61a)
+
+
 Built with ❤️ using React + TypeScript + Vite
