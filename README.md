@@ -2,6 +2,12 @@
 
 An embedded AI visualization tool that allows users to transform room images using AI technology. Features a smooth drawer-style interface with drag & drop upload, real-time processing, and before/after comparison capabilities.
 
+## 🌐 Live Demo
+
+**🚀 [Try the live demo here](https://ai-visualizer-demo-pjlr60az6-haotian-wangs-projects-abd0efbf.vercel.app/)**
+
+The project is deployed on Vercel and ready to use! Click "Start Your Design Journey" to experience the AI-powered room transformation tool.
+
 ## ✨ Features
 
 - **Image Upload**: Drag & drop, click to select, or paste images (JPG/PNG, ≤5MB)
