@@ -1,5 +1,5 @@
 // src/EmbedApp.tsx - 嵌入式应用主组件
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { AnimatePresence } from 'framer-motion'
 import AIVisualizer from './components/AIVisualizer'
 import ResultDrawer from './components/ResultDrawer'
@@ -133,7 +133,7 @@ function EmbedApp({ initialConfig = {} }: EmbedAppProps) {
               onClose={handleCloseDrawer} 
               onShowResult={handleShowResult}
               // 传递配置到组件
-              apiBaseUrl={config.apiBaseUrl}
+              
             />
           )}
         </AnimatePresence>

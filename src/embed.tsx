@@ -1,6 +1,3 @@
-import React from 'react'
-import ReactDOM from 'react-dom/client'
-import EmbedApp from './EmbedApp'
 import './index.css'
 
 // 嵌入式配置
@@ -42,24 +39,3 @@ window.addEventListener('load', () => {
   }, '*');
 });
 
-// 启用 MSW（如果需要）
-async function enableMocking() {
-  if (process.env.NODE_ENV === 'development' || import.meta.env.VITE_ENABLE_MOCKS === 'true') {
-    const { worker } = await import('./mocks/browser')
-    return worker.start({
-      onUnhandledRequest: 'bypass',
-      serviceWorker: {
-        // 确保 Service Worker 在嵌入环境中正常工作
-        url: '/mockServiceWorker.js'
-      }
-    })
-  }
-}
-
-enableMocking().then(() => {
-  ReactDOM.createRoot(document.getElementById('root')!).render(
-    <React.StrictMode>
-      <EmbedApp initialConfig={embedConfig} />
-    </React.StrictMode>
-  )
-})
