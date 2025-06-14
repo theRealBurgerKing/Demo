@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import { motion } from 'framer-motion'
 
 interface AIVisualizerProps {
@@ -6,15 +6,18 @@ interface AIVisualizerProps {
   onShowResult: (resultImage: string, originalImage: string) => void
 }
 
-const AIVisualizer = ({ onClose, onShowResult }: AIVisualizerProps) => {
+const API_BASE = 'https://d12qavyo5a8mvc.cloudfront.net'
+
+export const AIVisualizer: React.FC<AIVisualizerProps> = ({ onClose, onShowResult }) => {
   const [isDragging, setIsDragging] = useState(false)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [progress, setProgress] = useState<number>(0)
-  const [resultImage, setResultImage] = useState<string | null>(null)
   const [originalImageUrl, setOriginalImageUrl] = useState<string | null>(null)
-  const [taskId, setTaskId] = useState<string | null>(null)
+  const originalImageUrlRef = useRef<string | null>(null)
+  const pollingRef = useRef<NodeJS.Timeout | null>(null)
+  const abortController = useRef<AbortController | null>(null)
 
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -42,49 +45,143 @@ const AIVisualizer = ({ onClose, onShowResult }: AIVisualizerProps) => {
     return true
   }
 
-  // Mock process: simulate POST /api/start_work, then poll every 1s, finish at random time
-  const mockProcess = (file: File) => {
-    setIsLoading(true);
-    setProgress(0);
-    setResultImage(null);
-    const origUrl = URL.createObjectURL(file);
-    setOriginalImageUrl(origUrl);
-    const mockTaskId = 'mock-' + Date.now();
-    setTaskId(mockTaskId);
-    let pollCount = 0;
-    const maxPolls = 90; // 90s / 1s
-    const pollInterval = 1000;
-    const maxProgress = 80;
-    const finishPoll = Math.floor(Math.random() * 3) + 3; // 3-5次轮询
-    const ease = (t: number) => maxProgress * (1 - Math.exp(-3 * t)); // t: 0~1
-    const poller = setInterval(() => {
-      pollCount++;
-      let t = pollCount / finishPoll;
-      t = Math.min(1, t);
-      let prog = Math.floor(ease(t) + Math.random() * 2); // 加点小抖动
-      setProgress(prog);
-      if (pollCount === finishPoll) {
-        clearInterval(poller);
-        setTimeout(() => {
-          setProgress(100);
-          setIsLoading(false);
-          setResultImage('public/generatedpic.jpg');
-          onShowResult('public/generatedpic.jpg', origUrl);
-        }, 500);
+  // Clean up polling on unmount or close
+  useEffect(() => {
+    return () => {
+      if (pollingRef.current) clearTimeout(pollingRef.current)
+      if (abortController.current) abortController.current.abort()
+    }
+  }, [])
+
+  // 更新 ref 当 originalImageUrl 改变时
+  useEffect(() => {
+    originalImageUrlRef.current = originalImageUrl
+    console.log('originalImageUrl changed:', originalImageUrl)
+  }, [originalImageUrl])
+
+  // Clean up URLs when component unmounts
+  useEffect(() => {
+    return () => {
+      if (originalImageUrlRef.current) {
+        console.log('Cleaning up originalImageUrl:', originalImageUrlRef.current)
+        URL.revokeObjectURL(originalImageUrlRef.current)
       }
-      if (pollCount >= maxPolls) {
-        clearInterval(poller);
-        setIsLoading(false);
-        setError('Timeout: No result after 90 seconds');
+    }
+  }, [])
+
+  const startTask = async (file: File) => {
+    setIsLoading(true)
+    setProgress(0)
+    setError(null)
+    
+    // 保存上传图片的URL
+    const newOriginalImageUrl = URL.createObjectURL(file)
+    console.log('1. Created original image URL:', newOriginalImageUrl)
+    setOriginalImageUrl(newOriginalImageUrl)
+    originalImageUrlRef.current = newOriginalImageUrl
+    
+    // 1. 模拟上传，直接用本地URL
+    // 2. 发起POST /api/start_work
+    abortController.current = new AbortController()
+    try {
+      const body = {
+        base_image: newOriginalImageUrl, // 使用新创建的URL
+        selected_reference: '/static/ref/a1.jpeg',
+        texture_paths: ['/static/textures/axon_cladding.jpg'],
+        recommended_colours: [
+          { name: 'Dulux Whisper White', rgb: '244,242,236' },
+          { name: 'Knotwood Silver Wattle', rgb: '200,198,192' }
+        ],
+        selected_product: {
+          name: 'Linea™ Weatherboard',
+          texture: 'textures/linea_weatherboard.png'
+        },
+        remove_obstacles: true,
+        use_mask: false,
+        design_ideology: 'Minimalistic',
+        style_config: 'Modern Coastal'
       }
-    }, pollInterval);
+      console.log('2. Sending request with originalImageUrl:', newOriginalImageUrl)
+      const res = await fetch(`${API_BASE}/api/start_work`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+        signal: abortController.current.signal
+      })
+      if (!res.ok) throw new Error('Failed to start task')
+      const data = await res.json()
+      if (!data.task_id) throw new Error('No task_id returned')
+      console.log('3. Got task_id, current originalImageUrl:', newOriginalImageUrl)
+      pollResult(data.task_id)
+    } catch (err: any) {
+      console.error('Error in startTask:', err)
+      setError(err.message || 'Failed to start task')
+      setIsLoading(false)
+    }
+  }
+
+  // Poll for result every 1s, up to 90s
+  const pollResult = (task_id: string) => {
+    let elapsed = 0
+    const interval = 1000
+    const maxTime = 90000
+    const poll = async () => {
+      try {
+        // Using exponential decay function f(t) = e^(-at) with a = 3
+        // Convert elapsed time to seconds and normalize to 0-1 range
+        const t = elapsed / 1000 / 5 // Normalize to 5 seconds range
+        const decay = Math.exp(-3 * t) // a = 3
+        const progress = Math.min(100, Math.floor((1 - decay) * 100))
+        setProgress(progress)
+        
+        const res = await fetch(`${API_BASE}/taskresult/${task_id}`, { signal: abortController.current?.signal })
+        if (!res.ok) throw new Error('Failed to get result')
+        const data = await res.json()
+        if (data.status === 'finished') {
+          setProgress(100)
+          setIsLoading(false)
+          const currentOriginalImageUrl = originalImageUrlRef.current
+          console.log('4. Task finished, current originalImageUrl:', currentOriginalImageUrl)
+          console.log('5. Result image path:', data.result_image_path)
+          // 确保传递原始图片URL
+          if (currentOriginalImageUrl) {
+            console.log('6. Calling onShowResult with:', { resultImage: data.result_image_path, originalImage: currentOriginalImageUrl })
+            onShowResult(data.result_image_path, currentOriginalImageUrl)
+          } else {
+            console.error('7. Error: originalImageUrl is missing')
+            setError('Original image URL is missing')
+          }
+          return
+        }
+        if (data.status === 'error') {
+          setError('Task failed')
+          setIsLoading(false)
+          return
+        }
+        // Still running
+        elapsed += interval
+        if (elapsed < maxTime) {
+          pollingRef.current = setTimeout(poll, interval)
+        } else {
+          setError('Timeout: No result after 90 seconds')
+          setIsLoading(false)
+        }
+      } catch (err: any) {
+        console.error('Error in poll:', err)
+        if (err.name !== 'AbortError') {
+          setError(err.message || 'Polling error')
+          setIsLoading(false)
+        }
+      }
+    }
+    poll()
   }
 
   // File select handler
   const handleFileSelect = useCallback((file: File) => {
     if (validateFile(file)) {
       setSelectedFile(file)
-      mockProcess(file)
+      startTask(file)
     }
   }, [])
 

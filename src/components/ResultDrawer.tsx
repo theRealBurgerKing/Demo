@@ -8,16 +8,18 @@ interface ResultDrawerProps {
   originalImage?: string
 }
 
-const ResultDrawer: React.FC<ResultDrawerProps> = ({ open, onClose, resultImage, originalImage }: ResultDrawerProps) => {
+const ResultDrawer: React.FC<ResultDrawerProps> = ({ open, onClose, resultImage, originalImage }) => {
   const [slider, setSlider] = React.useState(50) // percent
   const containerRef = React.useRef<HTMLDivElement>(null)
   const [dragging, setDragging] = React.useState(false)
 
   // Mouse/touch event handlers
   const onStart = (e: React.MouseEvent | React.TouchEvent) => {
+    e.preventDefault()
     setDragging(true)
     document.body.style.userSelect = 'none'
   }
+
   React.useEffect(() => {
     if (!dragging) return
     const onMove = (e: MouseEvent | TouchEvent) => {
@@ -61,6 +63,7 @@ const ResultDrawer: React.FC<ResultDrawerProps> = ({ open, onClose, resultImage,
   }, [open, onClose]);
 
   if (!open) return null
+  
   return (
     <motion.div
       initial={{ y: '100%' }}
@@ -69,7 +72,9 @@ const ResultDrawer: React.FC<ResultDrawerProps> = ({ open, onClose, resultImage,
       transition={{ duration: 0.4, ease: 'easeInOut' }}
       className="fixed inset-0 z-[100] bg-white overflow-auto"
     >
-      <div className="flex justify-end p-4">
+      {/* Header */}
+      <div className="flex justify-end items-center p-4 border-b">
+        
         <button
           onClick={onClose}
           className="p-2 hover:bg-gray-100 rounded-full transition-colors"
@@ -80,75 +85,161 @@ const ResultDrawer: React.FC<ResultDrawerProps> = ({ open, onClose, resultImage,
           </svg>
         </button>
       </div>
-      <div className="flex flex-col items-center justify-center min-h-[80vh] px-4">
-        <h2 className="text-2xl font-semibold mb-6">Your Generated Design</h2>
-        <div className="w-full max-w-3xl flex flex-col items-center">
+
+      {/* Main Content */}
+      <div className="flex flex-col items-center justify-center min-h-[calc(100vh-80px)] px-4 py-8">
+        <div className="w-full max-w-5xl">
           {originalImage ? (
             <div
               ref={containerRef}
-              className="relative w-full max-w-2xl aspect-[4/3] bg-gray-100 overflow-hidden rounded-lg shadow"
-              style={{ touchAction: 'none', cursor: dragging ? 'ew-resize' : 'default' }}
+              className="relative w-full bg-gray-100 overflow-hidden rounded-lg shadow-lg mx-auto"
+              style={{ 
+                touchAction: 'none', 
+                cursor: dragging ? 'ew-resize' : 'default',
+                aspectRatio: '16/10',
+                maxHeight: '70vh'
+              }}
             >
-              {/* Result image (background, full) */}
-              <img
-                src={resultImage}
-                alt="Result"
-                className="absolute top-0 left-0 w-full h-full object-cover"
-                draggable={false}
-              />
-              {/* Original image (top, left side only) */}
-              <img
-                src={originalImage}
-                alt="Original"
-                className="absolute top-0 left-0 w-full h-full object-cover pointer-events-none"
-                style={{ clipPath: `inset(0 ${100 - slider}% 0 0)`, transition: dragging ? 'none' : 'clip-path 0.2s' }}
-                draggable={false}
-              />
-              {/* Slider bar */}
-              <div
-                className="absolute top-0 bottom-0"
-                style={{ left: `calc(${slider}% - 18px)` }}
+              {/* 原图层 - 左侧显示 */}
+              <div 
+                className="absolute inset-0 overflow-hidden"
+                style={{ 
+                  clipPath: `inset(0 ${100 - slider}% 0 0)`
+                }}
               >
-                <div
-                  className="relative h-full flex items-center justify-center"
-                  style={{ width: '36px' }}
+                <img
+                  src={originalImage}
+                  alt="Original"
+                  className="w-full h-full object-cover"
+                  style={{
+                    objectPosition: 'center',
+                  }}
+                  draggable={false}
+                />
+              </div>
+              
+              {/* 结果图层 - 右侧显示 */}
+              <div 
+                className="absolute inset-0 overflow-hidden"
+                style={{ 
+                  clipPath: `inset(0 0 0 ${slider}%)`
+                }}
+              >
+                <img
+                  src={resultImage}
+                  alt="AI Generated Result"
+                  className="w-full h-full object-cover"
+                  style={{
+                    objectPosition: 'center',
+                  }}
+                  draggable={false}
+                />
+              </div>
+
+              {/* 分割线和控制按钮 */}
+              <div
+                className="absolute top-0 bottom-0 flex items-center justify-center"
+                style={{ 
+                  left: `${slider}%`,
+                  transform: 'translateX(-50%)',
+                  width: '4px'
+                }}
+              >
+                {/* 分割线 */}
+                <div className="absolute top-0 bottom-0 w-0.5 bg-white shadow-lg" />
+                
+                {/* 拖拽控制按钮 */}
+                <button
+                  className="relative bg-white border-2 border-gray-300 rounded-full shadow-lg flex items-center justify-center w-12 h-12 cursor-ew-resize hover:border-blue-400 transition-colors z-10 group"
+                  onMouseDown={onStart}
+                  onTouchStart={onStart}
+                  tabIndex={0}
+                  aria-label={`Compare slider at ${Math.round(slider)}%`}
                 >
-                  <div
-                    className="w-1 h-full bg-white/80 shadow border border-gray-300 rounded"
-                    style={{ marginLeft: '17px', marginRight: '17px' }}
-                  />
-                  <button
-                    className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white border border-gray-300 rounded-full shadow flex items-center justify-center w-9 h-9 cursor-ew-resize z-10"
-                    style={{ outline: 'none' }}
-                    onMouseDown={onStart}
-                    onTouchStart={onStart}
-                    tabIndex={0}
-                    aria-label="Compare slider"
+                  {/* 左箭头 */}
+                  <svg 
+                    className="w-3 h-3 text-gray-500 group-hover:text-blue-500 -ml-1" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    viewBox="0 0 24 24"
                   >
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#888" strokeWidth="2"><polyline points="15 18 9 12 15 6" /></svg>
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#888" strokeWidth="2"><polyline points="9 6 15 12 9 18" /></svg>
-                  </button>
-                </div>
+                    <polyline points="15 18 9 12 15 6" strokeWidth="2" />
+                  </svg>
+                  {/* 右箭头 */}
+                  <svg 
+                    className="w-3 h-3 text-gray-500 group-hover:text-blue-500 -mr-1" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    viewBox="0 0 24 24"
+                  >
+                    <polyline points="9 6 15 12 9 18" strokeWidth="2" />
+                  </svg>
+                </button>
+              </div>
+
+              {/* 图片标签 */}
+              <div className="absolute top-4 left-4 bg-black/70 text-white px-3 py-1 rounded-full text-sm font-medium">
+                Before
+              </div>
+              <div className="absolute top-4 right-4 bg-black/70 text-white px-3 py-1 rounded-full text-sm font-medium">
+                After
               </div>
             </div>
           ) : (
+            // 如果没有原图，只显示结果图
             <div className="w-full flex justify-center">
-              <img src={resultImage} alt="Generated Result" className="rounded-lg shadow max-h-[70vh] object-contain" />
+              <img 
+                src={resultImage} 
+                alt="AI Generated Result" 
+                className="rounded-lg shadow-lg max-h-[70vh] object-contain mx-auto" 
+              />
             </div>
           )}
-          {/* Download Button */}
-          <a
-            href={resultImage}
-            download
-            className="mt-8 px-6 py-2 bg-blue-600 text-white rounded-lg font-semibold shadow hover:bg-blue-700 transition-colors"
-            style={{ display: resultImage ? 'inline-block' : 'none' }}
-          >
-            Download Image
-          </a>
+
+          {/* 缩略图行 */}
+          {originalImage && (
+            <div className="flex justify-center mt-8 space-x-2">
+              {[1, 2, 3, 4].map((index) => (
+                <div 
+                  key={index}
+                  className={`w-16 h-16 rounded-lg overflow-hidden border-2 cursor-pointer transition-colors ${
+                    index === 1 ? 'border-blue-500' : 'border-gray-300 hover:border-gray-400'
+                  }`}
+                >
+                  <img
+                    src={index === 1 ? resultImage : `https://picsum.photos/64/64?random=${index}`}
+                    alt={`Variation ${index}`}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* 底部操作按钮 */}
+          <div className="flex justify-center items-center mt-8 space-x-4">
+            <a
+              href={resultImage}
+              download="ai-generated-result.jpg"
+              className="flex items-center space-x-2 px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold shadow hover:bg-blue-700 transition-colors"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              </svg>
+              <span>Download</span>
+            </a>
+            
+            <button className="flex items-center space-x-2 px-6 py-3 bg-gray-100 text-gray-700 rounded-lg font-semibold hover:bg-gray-200 transition-colors">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z" />
+              </svg>
+              <span>Share</span>
+            </button>
+          </div>
         </div>
       </div>
     </motion.div>
   )
 }
 
-export default ResultDrawer 
+export default ResultDrawer
