@@ -53,7 +53,7 @@ export const AIVisualizer: React.FC<AIVisualizerProps> = ({ onClose, onShowResul
     }
   }, [])
 
-  // 更新 ref 当 originalImageUrl 改变时
+  // update ref when originalImageUrl changed
   useEffect(() => {
     originalImageUrlRef.current = originalImageUrl
     console.log('originalImageUrl changed:', originalImageUrl)
@@ -74,18 +74,18 @@ export const AIVisualizer: React.FC<AIVisualizerProps> = ({ onClose, onShowResul
     setProgress(0)
     setError(null)
     
-    // 保存上传图片的URL
+    // save the uploaded image url
     const newOriginalImageUrl = URL.createObjectURL(file)
     console.log('1. Created original image URL:', newOriginalImageUrl)
     setOriginalImageUrl(newOriginalImageUrl)
     originalImageUrlRef.current = newOriginalImageUrl
     
-    // 1. 模拟上传，直接用本地URL
-    // 2. 发起POST /api/start_work
+    // 1. simulate upload, use local url
+    // 2. send POST /api/start_work
     abortController.current = new AbortController()
     try {
       const body = {
-        base_image: newOriginalImageUrl, // 使用新创建的URL
+        base_image: newOriginalImageUrl,
         selected_reference: '/static/ref/a1.jpeg',
         texture_paths: ['/static/textures/axon_cladding.jpg'],
         recommended_colours: [

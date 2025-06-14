@@ -4,15 +4,15 @@ import { rest } from 'msw'
 let taskStatus: Record<string, { status: string, start: number }> = {}
 
 export const handlers = [
-  // 启动任务
+  // start task
   rest.post('https://d12qavyo5a8mvc.cloudfront.net/api/start_work', async (req, res, ctx) => {
-    console.log('🎯 MSW: 拦截到 start_work 请求')
+    console.log('MSW: intercept start_work request')
     
     const task_id = 'mock-' + Math.random().toString(36).slice(2)
     taskStatus[task_id] = { status: 'running', start: Date.now() }
     
     return res(
-      ctx.delay(1000), // 模拟网络延迟
+      ctx.delay(1000), // simulate network delay
       ctx.status(200),
       ctx.json({ 
         status: 'running', 
@@ -21,9 +21,9 @@ export const handlers = [
     )
   }),
 
-  // 轮询任务结果
+  // poll task result
   rest.get('https://d12qavyo5a8mvc.cloudfront.net/taskresult/:task_id', (req, res, ctx) => {
-    console.log('🔄 MSW: 拦截到 taskresult 请求')
+    console.log('MSW: intercept taskresult request')
     
     const { task_id } = req.params
     const info = taskStatus[task_id as string]
@@ -38,11 +38,11 @@ export const handlers = [
       )
     }
     
-    // 模拟处理时间：3-5秒完成
+    // simulate processing time: 3-5 seconds
     const elapsed = (Date.now() - info.start) / 1000
-    console.log(`⏱️ 任务 ${task_id} 已运行 ${elapsed.toFixed(1)} 秒`)
+    console.log(`Task ${task_id} has run for ${elapsed.toFixed(1)} seconds`)
     
-    // 5秒后标记为完成
+    // mark as finished after 5 seconds
     if (elapsed > 5) {
       taskStatus[task_id as string].status = 'finished'
       return res(
@@ -54,7 +54,7 @@ export const handlers = [
       )
     }
     
-    // 90秒后超时
+    // timeout after 90 seconds
     if (elapsed > 90) {
       taskStatus[task_id as string].status = 'error'
       return res(
