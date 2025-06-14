@@ -1,0 +1,63 @@
+graph TB
+    %% 组件树结构
+    subgraph "组件树 Component Tree"
+        App[App.tsx<br/>🏠 应用根组件]
+        
+        %% 主页面结构
+        Header[Header<br/>📋 页面头部]
+        Banner[Banner<br/>🎯 主横幅区域]
+        Main[Main<br/>📄 主内容区域]
+        Footer[Footer<br/>📝 页面底部]
+        
+        %% 交互按钮
+        StartBtn[Start Your Design Journey<br/>🚀 启动按钮]
+        
+        %% AI可视化工具
+        AIVis[AIVisualizer.tsx<br/>🎨 AI可视化工具]
+        UploadArea[Upload Area<br/>📤 上传区域]
+        QRArea[QR Code Area<br/>📱 二维码区域]
+        ProgressBar[Progress Bar<br/>⏳ 进度条]
+        ErrorMsg[Error Message<br/>⚠️ 错误提示]
+        
+        %% 结果展示
+        ResultDrawer[ResultDrawer.tsx<br/>🖼️ 结果展示抽屉]
+        ImageComp[Image Comparison<br/>🔄 图片对比]
+        Thumbnails[Thumbnails<br/>🖼️ 缩略图列表]
+        ActionBtns[Action Buttons<br/>⚡ 操作按钮]
+        
+        %% 动画容器
+        AnimatePresence1[AnimatePresence<br/>✨ 动画容器1]
+        AnimatePresence2[AnimatePresence<br/>✨ 动画容器2]
+        
+        %% 连接关系
+        App --> Header
+        App --> Banner
+        App --> Main
+        App --> Footer
+        App --> AnimatePresence1
+        App --> AnimatePresence2
+        
+        Banner --> StartBtn
+        
+        AnimatePresence1 --> AIVis
+        AIVis --> UploadArea
+        AIVis --> QRArea
+        AIVis --> ProgressBar
+        AIVis --> ErrorMsg
+        
+        AnimatePresence2 --> ResultDrawer
+        ResultDrawer --> ImageComp
+        ResultDrawer --> Thumbnails
+        ResultDrawer --> ActionBtns
+    end
+    
+    %% 样式说明
+    classDef rootComponent fill:#e1f5fe,stroke:#01579b,stroke-width:3px
+    classDef mainComponent fill:#f3e5f5,stroke:#4a148c,stroke-width:2px
+    classDef subComponent fill:#e8f5e8,stroke:#1b5e20,stroke-width:1px
+    classDef animationComponent fill:#fff3e0,stroke:#e65100,stroke-width:2px
+    
+    class App rootComponent
+    class AIVis,ResultDrawer mainComponent
+    class Header,Banner,Main,Footer,UploadArea,QRArea,ImageComp subComponent
+    class AnimatePresence1,AnimatePresence2 animationComponent
