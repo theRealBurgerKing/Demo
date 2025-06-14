@@ -1,75 +1,148 @@
 # AI Visualizer Demo
 
-An embedded AI visualization tool that allows users to transform images using AI technology.
+An embedded AI visualization tool that allows users to transform room images using AI technology. Features a smooth drawer-style interface with drag & drop upload, real-time processing, and before/after comparison capabilities.
 
-## Features
+## ✨ Features
 
-- Drag & drop or click to upload images
-- Real-time AI image processing
-- Smooth animations and transitions
-- Responsive design
-- Progress tracking
-- Before/After image comparison
+- **Image Upload**: Drag & drop, click to select, or paste images (JPG/PNG, ≤5MB)
+- **Real-time Processing**: AI-powered room transformation with live progress tracking
+- **Interactive Comparison**: Before/after slider to compare original and transformed images
+- **Smooth Animations**: 300-500ms drawer transitions with Framer Motion
+- **Responsive Design**: Works seamlessly across desktop and mobile devices
+- **Accessibility**: Full keyboard navigation and screen reader support
+- **Resource Management**: Automatic cleanup of requests and memory leaks
 
-## Tech Stack
+## 🛠 Tech Stack
 
-- React 18
-- TypeScript
-- Vite
-- TailwindCSS
-- Framer Motion
-- React Query
+- **Frontend**: React 18 + TypeScript
+- **Build Tool**: Vite
+- **Styling**: TailwindCSS
+- **Animations**: Framer Motion
+- **State Management**: React Hooks
+- **API Mocking**: MSW (Mock Service Worker)
+- **Testing**: Jest + React Testing Library
 
-## Getting Started
+## 📁 Project Structure
 
-1. Install dependencies:
+```
+├── public/
+│   ├── generatedpic.jpg        # Sample generated image
+│   └── originalpic.jpg         # Sample original image
+├── src/
+│   ├── components/
+│   │   ├── AIVisualizer.tsx    # Main upload interface
+│   │   └── ResultDrawer.tsx    # Result display with comparison
+│   ├── mocks/
+│   │   ├── browser.ts          # MSW browser setup
+│   │   └── handlers.ts         # API mock handlers
+│   ├── App.tsx                 # Main application component
+│   ├── main.tsx               # Application entry point
+│   └── ai_visualizer_animation_...  # Animation implementation docs
+├── *.config.ts                # Configuration files
+└── README.md                  # This file
+```
+
+## 🚀 Getting Started
+
+### Prerequisites
+- Node.js 16+ 
+- npm or yarn
+
+### Installation
+
+1. **Clone the repository**:
+```bash
+git clone <repository-url>
+cd ai-visualizer-demo
+```
+
+2. **Install dependencies**:
 ```bash
 npm install
 ```
 
-2. Start development server:
+3. **Start development server**:
 ```bash
 npm run dev
 ```
 
-3. Build for production:
-```bash
-npm run build
+4. **Open in browser**:
+Visit `http://localhost:5173` to see the application
+
+### Mock API
+The application uses MSW to mock the AI processing API:
+
+- **Local Development**: Mocks are automatically enabled
+- **Production**: Replace with real API endpoints
+
+#### API Endpoints (Mocked)
+```typescript
+// Start AI processing task
+POST https://d12qavyo5a8mvc.cloudfront.net/api/start_work
+Response: { status: 'running', task_id: string }
+
+// Poll for task results
+GET https://d12qavyo5a8mvc.cloudfront.net/taskresult/{task_id}
+Response: { 
+  status: 'running' | 'finished' | 'error',
+  result_image_path?: string 
+}
 ```
 
-4. Run tests:
-```bash
-npm test
-```
+### Key Components
 
-## Project Structure
+#### `App.tsx`
+- Main application wrapper
+- Manages drawer state and body scroll
+- Handles navigation between upload and result views
 
-```
-src/
-  ├── components/     # React components
-  ├── hooks/         # Custom React hooks
-  ├── types/         # TypeScript type definitions
-  ├── utils/         # Utility functions
-  ├── api/           # API integration
-  └── styles/        # Global styles
-```
+#### `AIVisualizer.tsx` 
+- Image upload interface with drag & drop
+- File validation (type, size)
+- Progress tracking with exponential decay algorithm
+- API integration with polling mechanism
 
-## API Integration
+#### `ResultDrawer.tsx`
+- Before/after image comparison with interactive slider
+- Keyboard navigation support
+- Download functionality
+- Multiple result variations display
 
-The demo uses the following endpoints:
-- POST /api/start_work
-- GET /taskresult/{task_id}
+## 🎨 Animation Implementation
 
-Base URL: https://d12qavyo5a8mvc.cloudfront.net
+The app features smooth animations powered by Framer Motion:
 
-## Development
+- **Drawer Transitions**: 400ms ease-in-out slide from bottom
+- **Drag Feedback**: Real-time visual feedback during file drag
+- **Progress Animation**: Exponential decay progress simulation
+- **Comparison Slider**: Smooth interactive image comparison
 
-- Use `npm run dev` for local development
-- The app will be available at `http://localhost:5173`
-- Hot Module Replacement (HMR) is enabled by default
+For detailed animation implementation, see `ai_visualizer_animation_implementation.md`.
 
-## Testing
+## ♿ Accessibility
 
-- Unit tests are written using Jest and React Testing Library
-- Run tests with `npm test`
-- Coverage reports are generated automatically
+- **Keyboard Navigation**: Full keyboard support with ESC to close
+- **Screen Readers**: ARIA labels and live regions for status updates
+- **Focus Management**: Proper focus trapping in modal states
+- **Color Contrast**: Meets WCAG AA standards
+
+## 🧹 Resource Management
+
+The application implements comprehensive cleanup:
+
+- **AbortController**: Cancels in-flight API requests
+- **URL.revokeObjectURL**: Cleans up blob URLs
+- **Timer Cleanup**: Clears polling intervals on unmount
+- **Scroll Restoration**: Restores body scroll on drawer close
+
+
+### Browser Support
+
+- Chrome 90+
+- Firefox 88+
+- Safari 14+
+- Edge 90+
+
+---
+
+Built with ❤️ using React + TypeScript + Vite
