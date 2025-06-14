@@ -273,14 +273,15 @@ export const AIVisualizer: React.FC<AIVisualizerProps> = ({ onClose, onShowResul
                   onChange={handleFileInput}
                   className="hidden"
                   id="file-upload"
+                  aria-describedby="upload-description"
                 />
                 <label htmlFor="file-upload" className="w-full flex flex-col items-center cursor-pointer">
                   <div className="flex flex-col items-center gap-2">
                     <div className="bg-gray-100 rounded-full p-3 mb-2">
-                      <svg className="w-7 h-7 text-gray-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5-5m0 0l5 5m-5-5v12" /></svg>
+                      <svg className="w-7 h-7 text-gray-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5-5m0 0l5 5m-5-5v12" /></svg>
                     </div>
                     <span className="font-semibold text-lg">Start from a Photo</span>
-                    <span className="text-gray-500 text-sm">Drag and drop your image anywhere on this page</span>
+                    <span className="text-gray-500 text-sm" id="upload-description">Drag and drop your image anywhere on this page</span>
                   </div>
                   <div className="my-4 w-full flex items-center">
                     <div className="flex-grow border-t border-dashed border-gray-300"></div>
@@ -297,26 +298,27 @@ export const AIVisualizer: React.FC<AIVisualizerProps> = ({ onClose, onShowResul
                   </div>
                   {/* Progress & Result */}
                   {isLoading && (
-                    <div className="w-full mt-4">
-                      <div className="w-full bg-gray-200 rounded-full h-2.5">
+                    <div className="w-full mt-4" role="status" aria-live="polite">
+                      <div className="w-full bg-gray-200 rounded-full h-2.5" aria-label="Upload progress">
                         <div className="bg-blue-500 h-2.5 rounded-full transition-all" style={{ width: `${progress}%` }}></div>
                       </div>
                       <p className="text-xs text-gray-500 mt-2">Processing... ({progress}%)</p>
                     </div>
                   )}
                   {error && (
-                    <p className="text-red-500 text-sm mt-2">{error}</p>
+                    <p className="text-red-500 text-sm mt-2" role="alert" aria-live="assertive">{error}</p>
                   )}
                 </label>
               </div>
             </div>
             {/* QR Code Area */}
-            <div className="flex-1 min-w-[260px] max-w-xs bg-gray-50 rounded-2xl flex flex-col items-center justify-center p-8 border border-gray-100">
-              <span className="text-gray-500 text-sm mb-4 text-center">Please scan this QR code with your phone to easily upload the image of the room.</span>
+            <div className="flex-1 min-w-[260px] max-w-xs bg-gray-50 rounded-2xl flex flex-col items-center justify-center p-8 border border-gray-100" role="region" aria-labelledby="qr-title">
+              <span className="text-gray-500 text-sm mb-4 text-center" id="qr-title">
+                Please scan this QR code with your phone to easily upload the image of the room.
+              </span>
               <div className="bg-white rounded-lg p-4 shadow flex items-center justify-center">
-                {/* Placeholder for QR code */}
-                <div className="w-32 h-32 bg-gray-200 flex items-center justify-center rounded">
-                  <span className="text-gray-400">QR</span>
+                <div className="w-32 h-32 bg-gray-200 flex items-center justify-center rounded" aria-label="QR code placeholder">
+                  <span className="text-gray-400" aria-hidden="true">QR</span>
                 </div>
               </div>
             </div>

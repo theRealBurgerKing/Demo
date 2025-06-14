@@ -78,7 +78,7 @@ const ResultDrawer: React.FC<ResultDrawerProps> = ({ open, onClose, resultImage,
           className="p-2 hover:bg-gray-100 rounded-full transition-colors"
           aria-label="Close"
         >
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
@@ -91,6 +91,8 @@ const ResultDrawer: React.FC<ResultDrawerProps> = ({ open, onClose, resultImage,
             <div
               ref={containerRef}
               className="relative w-full bg-gray-100 overflow-hidden rounded-lg shadow-lg mx-auto"
+              role="application"
+              aria-label="Image comparison slider"
               style={{
                 touchAction: 'none',
                 cursor: dragging ? 'ew-resize' : 'default',
@@ -107,12 +109,13 @@ const ResultDrawer: React.FC<ResultDrawerProps> = ({ open, onClose, resultImage,
               >
                 <img
                   src={originalImage}
-                  alt="Original"
+                  alt="Original room image before AI transformation"
                   className="w-full h-full object-cover"
                   style={{
                     objectPosition: 'center',
                   }}
                   draggable={false}
+                  aria-hidden="true"
                 />
               </div>
               
@@ -125,12 +128,13 @@ const ResultDrawer: React.FC<ResultDrawerProps> = ({ open, onClose, resultImage,
               >
                 <img
                   src={resultImage}
-                  alt="AI Generated Result"
+                  alt="AI generated room transformation result"
                   className="w-full h-full object-cover"
                   style={{
                     objectPosition: 'center',
                   }}
                   draggable={false}
+                  aria-hidden="true"
                 />
               </div>
 
@@ -152,7 +156,20 @@ const ResultDrawer: React.FC<ResultDrawerProps> = ({ open, onClose, resultImage,
                   onMouseDown={onStart}
                   onTouchStart={onStart}
                   tabIndex={0}
-                  aria-label={`Compare slider at ${Math.round(slider)}%`}
+                  aria-label={`Image comparison slider. Currently showing ${Math.round(slider)}% of the transformed image. Use arrow keys or drag to adjust.`}
+                  onKeyDown={(e) => { 
+                    if (e.key === 'ArrowLeft') {
+                      e.preventDefault();
+                      setSlider(Math.max(0, slider - 5));
+                    } else if (e.key === 'ArrowRight') {
+                      e.preventDefault();
+                      setSlider(Math.min(100, slider + 5));
+                    }
+                  }}
+                  role="slider"
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  aria-valuenow={Math.round(slider)}
                 >
                   {/* Left arrow */}
                   <svg
@@ -160,6 +177,7 @@ const ResultDrawer: React.FC<ResultDrawerProps> = ({ open, onClose, resultImage,
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
+                    aria-hidden="true"
                   >
                     <polyline points="15 18 9 12 15 6" strokeWidth="2" />
                   </svg>
@@ -169,6 +187,7 @@ const ResultDrawer: React.FC<ResultDrawerProps> = ({ open, onClose, resultImage,
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
+                    aria-hidden="true"
                   >
                     <polyline points="9 6 15 12 9 18" strokeWidth="2" />
                   </svg>
@@ -221,14 +240,14 @@ const ResultDrawer: React.FC<ResultDrawerProps> = ({ open, onClose, resultImage,
                download="ai-generated-result.jpg"
                className="flex items-center space-x-2 px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold shadow hover:bg-blue-700 transition-colors"
              >
-               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                </svg>
                <span>Download</span>
              </a>
              
              <button className="flex items-center space-x-2 px-6 py-3 bg-gray-100 text-gray-700 rounded-lg font-semibold hover:bg-gray-200 transition-colors">
-               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z" />
                </svg>
                <span>Share</span>
